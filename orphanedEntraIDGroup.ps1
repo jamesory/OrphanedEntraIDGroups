@@ -6,7 +6,8 @@ Connect-MgGraph -Scopes 'Group.Read.All'
 
 #Get Groups that Are OnPremise Synced, Avoiding Office365 Groups
 
-$Azure = Get-MgGroup -Filter "OnPremisesSyncEnabled eq true" 
+$props = "id","OnPremisesSamAccountName","OnPremisesSyncEnabled"
+$Azure = Get-MgGroup -All -Property $props | select OnPremisesSamAccountName, OnPremisesSyncEnabled
 
 # Get Active Directory Groups
 
@@ -17,7 +18,7 @@ $AZDN=$Azure.displayname
 $ADDN=$AD.SamAccountName
 
 # Compare EntraID to Active Directory, if a group is not in Active Directory, it is more than likely Orphaned 
-$Groups = $AZDN| Where-Object { $ADDN -Contains $_ }
+$Groups = $AZDN  | where-object {$ADDN -NotContains $_}
 
 # Obtain the EntraID Group ID, which is needed to delete the group
 $objectid = foreach ($id in $Groups) {
